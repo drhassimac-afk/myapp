@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#312e81" />
+    <meta name="description" content="تطبيق Android حقيقي مبني بـ React و Capacitor" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="تطبيقي" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Icons -->
+    <link rel="apple-touch-icon" href="/icon-192x192.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512x512.png" />
+    
+    <!-- Splash Screen for iOS -->
+    <link rel="apple-touch-startup-image" href="/splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" />
+    
+    <title>تطبيقي - تطبيق Android</title>
+    
+    <style>
+      /* Loading Screen */
+      #loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #312e81 0%, #581c87 50%, #be185d 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.5s;
+      }
+      #loading.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #loading .spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(255,255,255,0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      #loading p {
+        color: white;
+        margin-top: 16px;
+        font-family: system-ui, sans-serif;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Loading Screen -->
+    <div id="loading">
+      <div class="spinner"></div>
+      <p>جاري التحميل...</p>
+    </div>
+    
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Register Service Worker -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('✅ SW registered:', registration);
+            })
+            .catch((error) => {
+              console.log('❌ SW registration failed:', error);
+            });
+        });
+      }
+      
+      // Hide loading screen when app is ready
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          document.getElementById('loading').classList.add('hidden');
+        }, 500);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,109 @@
+name: Build Signed APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build web app
+      run: npm run build
+      
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      
+    - name: Setup Gradle Wrapper
+      run: |
+        cd android
+        # تحميل gradle-wrapper.jar إذا لم يكن موجوداً
+        if [ ! -f "gradle/wrapper/gradle-wrapper.jar" ]; then
+          echo "📥 Downloading gradle-wrapper.jar..."
+          mkdir -p gradle/wrapper
+          curl -L -o gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.2.0/gradle/wrapper/gradle-wrapper.jar
+        fi
+        # جعل gradlew قابل للتنفيذ
+        chmod +x gradlew
+      
+    - name: Cache Gradle
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+    
+    - name: Sync Capacitor
+      run: npx cap sync android
+      
+    - name: Decode Keystore
+      env:
+        ENCODED_STRING: ${{ secrets.KEYSTORE_BASE64 }}
+        STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+      run: |
+        if [ -z "$ENCODED_STRING" ]; then
+          echo "❌ ERROR: KEYSTORE_BASE64 is not set!"
+          echo "Please add KEYSTORE_BASE64 to GitHub Secrets"
+          exit 1
+        fi
+        if [ -z "$STORE_PASSWORD" ]; then
+          echo "❌ ERROR: STORE_PASSWORD is not set!"
+          echo "Please add STORE_PASSWORD to GitHub Secrets"
+          exit 1
+        fi
+        echo $ENCODED_STRING | base64 -di > android/app/my-release-key.keystore
+        
+    - name: Build Signed APK
+      working-directory: ./android
+      env:
+        STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      run: |
+        ./gradlew assembleRelease
+      
+    - name: Upload Signed APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: signed-apk
+        path: android/app/build/outputs/apk/release/app-release.apk
+        
+    - name: Create Release
+      if: github.ref == 'refs/heads/main'
+      uses: marvinpinto/action-automatic-releases@latest
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "v1.0.${{ github.run_number }}"
+        prerelease: false
+        title: "🚀 إصدار جديد v1.0.${{ github.run_number }}"
+        files: |
+          android/app/build/outputs/apk/release/app-release.apk
+          
+    - name: Cleanup Keystore
+      if: always()
+      run: |
+        rm -f android/app/my-release-key.keystore

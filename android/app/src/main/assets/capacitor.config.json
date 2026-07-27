@@ -1,0 +1,6 @@
+{
+  "appId": "com.myapp.reactapp",
+  "appName": "تطبيقي",
+  "bundledWebRuntime": false,
+  "webDir": "public"
+}
