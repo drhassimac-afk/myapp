@@ -1,8 +1,0 @@
-# ملف gradle-wrapper.jar يجب تحميله
-# يمكنك تحميله من:
-# https://raw.githubusercontent.com/gradle/gradle/v8.2.0/gradle/wrapper/gradle-wrapper.jar
-#
-# أو استخدام الأمر:
-# curl -L -o android/gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.2.0/gradle/wrapper/gradle-wrapper.jar
-#
-# أو دعه يُولد تلقائياً في GitHub Actions
