@@ -23,6 +23,10 @@ jobs:
         
     - name: Install dependencies
       run: npm ci
+
+    - name: Fix Capacitor Java compatibility
+      run: |
+        find node_modules/@capacitor -name 'build.gradle' -exec sed -i 's/JavaVersion.VERSION_21/JavaVersion.VERSION_17/g' {} +
       
     - name: Build web app
       run: npm run build
@@ -31,7 +35,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '21'
+        java-version: '17'
         
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
