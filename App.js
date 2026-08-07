@@ -6,7 +6,7 @@ const { width } = Dimensions.get('window');
 
 export default function App() {
   const handlePress = (buttonName) => {
-    console.log(`تم الضغط على زر: ${buttonName}`);
+    console.log(`Bouton cliqué : ${buttonName}`);
   };
 
   return (
@@ -19,25 +19,25 @@ export default function App() {
 
       <View style={styles.gridContainer}>
         <View style={styles.row}>
-          <TouchableOpacity style={[styles.card, { backgroundColor: '#8a2be2' }]} onPress={() => handlePress('البنفسجي')}>
+          <TouchableOpacity style={[styles.card, { backgroundColor: '#8a2be2' }]} onPress={() => handlePress('Violet')}>
             <MaterialCommunityIcons name="connection" size={36} color="#fff" />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.card, { backgroundColor: '#d90429' }]} onPress={() => handlePress('الأحمر')}>
+          <TouchableOpacity style={[styles.card, { backgroundColor: '#d90429' }]} onPress={() => handlePress('Rouge')}>
             <MaterialCommunityIcons name="database" size={36} color="#fff" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.row}>
-          <TouchableOpacity style={[styles.card, { backgroundColor: '#2a9d8f' }]} onPress={() => handlePress('الأخضر')}>
+          <TouchableOpacity style={[styles.card, { backgroundColor: '#2a9d8f' }]} onPress={() => handlePress('Vert')}>
             <MaterialCommunityIcons name="microphone" size={36} color="#fff" />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.card, { backgroundColor: '#4361ee' }]} onPress={() => handlePress('الأزرق')}>
+          <TouchableOpacity style={[styles.card, { backgroundColor: '#4361ee' }]} onPress={() => handlePress('Bleu')}>
             <MaterialCommunityIcons name="controller-classic" size={36} color="#fff" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.singleRow}>
-          <TouchableOpacity style={[styles.card, { backgroundColor: '#f77f00' }]} onPress={() => handlePress('البرتقالي')}>
+          <TouchableOpacity style={[styles.card, { backgroundColor: '#f77f00' }]} onPress={() => handlePress('Orange')}>
             <MaterialCommunityIcons name="music-note" size={36} color="#fff" />
           </TouchableOpacity>
         </View>
@@ -56,3 +56,4 @@ const styles = StyleSheet.create({
   singleRow: { flexDirection: 'row', justifyContent: 'center', width: '100%' },
   card: { width: width * 0.28, height: width * 0.28, borderRadius: 18, justifyContent: 'center', alignItems: 'center', marginHorizontal: 10, elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5 },
 });
+

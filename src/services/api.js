@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// الرابط الفعلي لمشروعك على Vercel
+// Lien de votre serveur de production Vercel
 const API_URL = 'https://vercel.app'; 
 
 export const fetchData = async (endpoint) => {
@@ -8,7 +8,8 @@ export const fetchData = async (endpoint) => {
     const response = await axios.get(`${API_URL}/${endpoint}`);
     return response.data;
   } catch (error) {
-    console.error("خطأ في جلب البيانات:", error);
+    console.error("Erreur réseau Vercel :", error);
     return null;
   }
 };
+
