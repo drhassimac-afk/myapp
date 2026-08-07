@@ -28,13 +28,14 @@ jobs:
         with:
           node-version: '22'
 
-      - name: 📦 Install Dependencies
+      - name: 📦 Install Project Dependencies
         run: |
-          npm install expo
+          npm install expo react-native --legacy-peer-deps
           npm install --legacy-peer-deps
 
+      # 🟢 تعديل خطوة الـ Prebuild لمنع التوقف وطلب الموافقة التلقائية
       - name: 🏗️ Generate Android Folder (Clean Build)
-        run: npx expo prebuild --platform android --clean
+        run: npx expo prebuild --platform android --clean --no-install
 
       - name: 📦 Bundle Assets & Latest JS Code
         run: |
