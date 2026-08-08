@@ -28,12 +28,12 @@ jobs:
         with:
           node-version: '22'
 
+      # 🟢 تم إضافة تثبيت مكتبة الأيقونات صراحة لضمان نجاح الـ Bundle
       - name: 📦 Install Project Dependencies
         run: |
-          npm install expo react-native --legacy-peer-deps
+          npm install expo react-native @expo/vector-icons --legacy-peer-deps
           npm install --legacy-peer-deps
 
-      # 🟢 تعديل خطوة الـ Prebuild لمنع التوقف وطلب الموافقة التلقائية
       - name: 🏗️ Generate Android Folder (Clean Build)
         run: npx expo prebuild --platform android --clean --no-install
 
