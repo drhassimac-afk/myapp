@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// Lien de votre serveur de production Vercel
+// 🟢 URL ajustée pour interroger directement vos routes Next.js
 const API_URL = 'https://vercel.app'; 
 
 export const fetchData = async (endpoint) => {
