@@ -7,22 +7,23 @@ const { width } = Dimensions.get('window');
 
 export default function App() {
   const [modalVisible, setModalVisible] = useState(false);
-  const [currentType, setCurrentType] = useState(''); // 'connections' أو 'database'
+  const [currentType, setCurrentType] = useState(''); // 'connections' ou 'products'
   const [loading, setLoading] = useState(false);
   const [fetchedData, setFetchedData] = useState([]);
 
-  // دالة التعامل مع الضغط على الأزرار
+  // Gestion du clic sur les boutons
   const handlePress = async (buttonName) => {
     if (buttonName === 'البنفسجي' || buttonName === 'الأحمر') {
       setLoading(true);
       setModalVisible(true);
       
-      const endpoint = buttonName === 'البنفسجي' ? 'connections' : 'database';
+      // 🟢 Remplacement de 'database' par 'products' suite à votre choix
+      const endpoint = buttonName === 'البنفسجي' ? 'connections' : 'products';
       setCurrentType(endpoint);
 
       const result = await fetchData(endpoint); 
       
-      // التحقق من بنية البيانات وتحويلها إلى مصفوفة قابلة للعرض
+      // Vérification et formatage des données en tableau
       if (result && Array.isArray(result)) {
         setFetchedData(result);
       } else if (result && result.data && Array.isArray(result.data)) {
@@ -34,7 +35,7 @@ export default function App() {
     }
   };
 
-  // تصميم العناصر للقائمة بناءً على نوع الزر المفتوح
+  // Rendu des éléments de la liste selon le bouton cliqué
   const renderItem = ({ item, index }) => {
     if (currentType === 'connections') {
       return (
@@ -51,15 +52,18 @@ export default function App() {
         </View>
       );
     } else {
-      // تصميم بطاقات قاعدة البيانات (الزر الأحمر)
+      // 🟢 Rendu stylisé pour la liste des produits (Bouton Rouge)
       return (
         <View style={[styles.itemCard, { borderColor: '#d90429' }]}>
           <View style={styles.itemHeader}>
-            <MaterialCommunityIcons name="database-marker" size={24} color="#d90429" />
-            <Text style={styles.itemTitle}>{item.title || item.id || `سجل #${index + 1}`}</Text>
+            <MaterialCommunityIcons name="package-variant-closed" size={24} color="#d90429" />
+            <Text style={styles.itemTitle}>{item.title || item.name || `منتج #${index + 1}`}</Text>
           </View>
           <Text style={styles.itemDetails}>
-            {typeof item === 'object' ? JSON.stringify(item, null, 2) : item}
+            {item.price ? `السعر: ${item.price}` : ''}
+            {item.description ? `\nالوصف: ${item.description}` : ''}
+            {item.stock !== undefined ? `\nالكمية: ${item.stock}` : ''}
+            {!item.title && !item.name && !item.price ? JSON.stringify(item, null, 2) : ''}
           </Text>
         </View>
       );
@@ -100,20 +104,20 @@ export default function App() {
         </View>
       </View>
 
-      {/* النافذة المنبثقة المشتركة للزرين */}
+      {/* Fenêtre modale partagée */}
       <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <MaterialCommunityIcons 
-                  name={currentType === 'connections' ? "pulse" : "database"} 
+                  name={currentType === 'connections' ? "pulse" : "package-variant-closed"} 
                   size={24} 
                   color={currentType === 'connections' ? "#8a2be2" : "#d90429"} 
                   style={{ marginRight: 8 }} 
                 />
                 <Text style={styles.modalTitle}>
-                  {currentType === 'connections' ? "قائمة الاتصالات الحية" : "سجلات قاعدة البيانات"}
+                  {currentType === 'connections' ? "قائمة الاتصالات الحية" : "قائمة المنتجات (Drizzle)"}
                 </Text>
               </View>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
@@ -136,7 +140,7 @@ export default function App() {
             ) : (
               <View style={styles.centerFetch}>
                 <MaterialCommunityIcons name="alert-circle-outline" size={48} color="#d90429" />
-                <Text style={styles.errorText}>لم يتم العثور على أي بيانات، أو أن المسار غير مهيأ في الـ Backend.</Text>
+                <Text style={styles.errorText}>لم يتم العثور على أي بيانات. تأكد من توفر مسار /api/{currentType} على Vercel.</Text>
               </View>
             )}
           </View>
@@ -148,7 +152,7 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0b132b', alignItems: 'center', justifyContent: 'space-between' },
+  container: { flex: 1, backgroundColor: '#0b132b', alignItems: 'center', justifyBetween: 'space-between' },
   header: { marginTop: 50, alignItems: 'center' },
   logoText: { fontSize: 32, fontWeight: 'bold', color: '#ffffff', letterSpacing: 1 },
   logoHighlight: { color: '#4361ee' },
