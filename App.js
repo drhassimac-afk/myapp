@@ -7,119 +7,93 @@ const { width } = Dimensions.get('window');
 
 export default function App() {
   const [modalVisible, setModalVisible] = useState(false);
-  const [currentType, setCurrentType] = useState(''); // 'connections' ou 'products'
+  const [currentType, setCurrentType] = useState(''); 
   const [loading, setLoading] = useState(false);
   const [fetchedData, setFetchedData] = useState([]);
 
-  // Gestion du clic sur les boutons
-  const handlePress = async (buttonName) => {
-    if (buttonName === 'البنفسجي' || buttonName === 'الأحمر') {
-      setLoading(true);
-      setModalVisible(true);
-      
-      // 🟢 Remplacement de 'database' par 'products' suite à votre choix
-      const endpoint = buttonName === 'البنفسجي' ? 'connections' : 'products';
-      setCurrentType(endpoint);
+  // دالة التعامل مع الضغط وجلب البيانات
+  const handlePress = async (buttonName, endpoint) => {
+    setLoading(true);
+    setModalVisible(true);
+    setCurrentType(buttonName);
 
-      const result = await fetchData(endpoint); 
-      
-      // Vérification et formatage des données en tableau
-      if (result && Array.isArray(result)) {
-        setFetchedData(result);
-      } else if (result && result.data && Array.isArray(result.data)) {
-        setFetchedData(result.data);
-      } else {
-        setFetchedData(result ? [result] : []);
-      }
-      setLoading(false);
-    }
-  };
-
-  // Rendu des éléments de la liste selon le bouton cliqué
-  const renderItem = ({ item, index }) => {
-    if (currentType === 'connections') {
-      return (
-        <View style={[styles.itemCard, { borderColor: '#8a2be2' }]}>
-          <View style={styles.itemHeader}>
-            <MaterialCommunityIcons name="account-circle" size={24} color="#8a2be2" />
-            <Text style={styles.itemTitle}>{item.name || item.username || `اتصال #${index + 1}`}</Text>
-          </View>
-          <Text style={styles.itemDetails}>
-            {item.status ? `الحالة: ${item.status}` : ''} 
-            {item.ip ? `\nIP: ${item.ip}` : ''}
-            {typeof item === 'string' ? item : (!item.name && !item.status ? JSON.stringify(item) : '')}
-          </Text>
-        </View>
-      );
+    // طلب المسار من Vercel
+    const result = await fetchData(endpoint); 
+    
+    if (result && Array.isArray(result)) {
+      setFetchedData(result);
+    } else if (result && result.data && Array.isArray(result.data)) {
+      setFetchedData(result.data);
     } else {
-      // 🟢 Rendu stylisé pour la liste des produits (Bouton Rouge)
-      return (
-        <View style={[styles.itemCard, { borderColor: '#d90429' }]}>
-          <View style={styles.itemHeader}>
-            <MaterialCommunityIcons name="package-variant-closed" size={24} color="#d90429" />
-            <Text style={styles.itemTitle}>{item.title || item.name || `منتج #${index + 1}`}</Text>
-          </View>
-          <Text style={styles.itemDetails}>
-            {item.price ? `السعر: ${item.price}` : ''}
-            {item.description ? `\nالوصف: ${item.description}` : ''}
-            {item.stock !== undefined ? `\nالكمية: ${item.stock}` : ''}
-            {!item.title && !item.name && !item.price ? JSON.stringify(item, null, 2) : ''}
-          </Text>
-        </View>
-      );
+      setFetchedData(result ? [result] : []);
     }
+    setLoading(false);
   };
+
+  const renderItem = ({ item, index }) => (
+    <View style={styles.itemCard}>
+      <Text style={styles.itemDetails}>
+        {typeof item === 'object' ? JSON.stringify(item, null, 2) : item}
+      </Text>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0b132b" />
       
+      {/* الشعار العلوي المطابق */}
       <View style={styles.header}>
         <Text style={styles.logoText}>Rabah<Text style={styles.logoHighlight}>Dj</Text></Text>
+        <Text style={styles.subTitle}>شبكتك الاجتماعية المحلية</Text>
+        <Text style={styles.descText}>اتصل، شارك، وابث صوتاً وفيديو مع أصدقائك</Text>
       </View>
 
+      {/* مصفوفة الأزرار المطابقة تماماً للموقع */}
       <View style={styles.gridContainer}>
+        
+        {/* الصف الأول */}
         <View style={styles.row}>
-          <TouchableOpacity style={[styles.card, { backgroundColor: '#8a2be2' }]} onPress={() => handlePress('البنفسجي')}>
-            <MaterialCommunityIcons name="connection" size={36} color="#fff" />
+          <TouchableOpacity style={[styles.card, { backgroundColor: '#8a2be2' }]} onPress={() => handlePress('بث مباشر', 'connections')}>
+            <MaterialCommunityIcons name="radio-tower" size={40} color="#fff" />
+            <Text style={styles.cardText}>بث مباشر</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.card, { backgroundColor: '#d90429' }]} onPress={() => handlePress('الأحمر')}>
-            <MaterialCommunityIcons name="database" size={36} color="#fff" />
+          
+          <TouchableOpacity style={[styles.card, { backgroundColor: '#d90429' }]} onPress={() => handlePress('سينما وتلفاز', 'products')}>
+            <MaterialCommunityIcons name="movie-roll" size={40} color="#fff" />
+            <Text style={styles.cardText}>سينما وتلفاز</Text>
           </TouchableOpacity>
         </View>
 
+        {/* الصف الثاني */}
         <View style={styles.row}>
-          <TouchableOpacity style={[styles.card, { backgroundColor: '#2a9d8f' }]} onPress={() => handlePress('الأخضر')}>
-            <MaterialCommunityIcons name="microphone" size={36} color="#fff" />
+          <TouchableOpacity style={[styles.card, { backgroundColor: '#2a9d8f' }]} onPress={() => handlePress('تخاطب لاسلكي', 'walkietalkie')}>
+            <MaterialCommunityIcons name="walkie-talkie" size={40} color="#fff" />
+            <Text style={styles.cardText}>تخاطب لاسلكي</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.card, { backgroundColor: '#4361ee' }]} onPress={() => handlePress('الأزرق')}>
-            <MaterialCommunityIcons name="controller-classic" size={36} color="#fff" />
+          
+          <TouchableOpacity style={[styles.card, { backgroundColor: '#4361ee' }]} onPress={() => handlePress('محادثات فورية', 'chat')}>
+            <MaterialCommunityIcons name="chat-processing" size={40} color="#fff" />
+            <Text style={styles.cardText}>محادثات فورية</Text>
           </TouchableOpacity>
         </View>
 
+        {/* الزر الخامس السفلي */}
         <View style={styles.singleRow}>
-          <TouchableOpacity style={[styles.card, { backgroundColor: '#f77f00' }]} onPress={() => handlePress('البرتقالي')}>
-            <MaterialCommunityIcons name="music-note" size={36} color="#fff" />
+          <TouchableOpacity style={[styles.card, { backgroundColor: '#f77f00' }]} onPress={() => handlePress('الموسيقى والأصوات', 'music')}>
+            <MaterialCommunityIcons name="music" size={40} color="#fff" />
+            <Text style={styles.cardText}>موسيقى وأصوات</Text>
           </TouchableOpacity>
         </View>
+
       </View>
 
-      {/* Fenêtre modale partagée */}
+      {/* النافذة المنبثقة للبيانات */}
       <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <MaterialCommunityIcons 
-                  name={currentType === 'connections' ? "pulse" : "package-variant-closed"} 
-                  size={24} 
-                  color={currentType === 'connections' ? "#8a2be2" : "#d90429"} 
-                  style={{ marginRight: 8 }} 
-                />
-                <Text style={styles.modalTitle}>
-                  {currentType === 'connections' ? "قائمة الاتصالات الحية" : "قائمة المنتجات (Drizzle)"}
-                </Text>
-              </View>
+              <Text style={styles.modalTitle}>{currentType}</Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <MaterialCommunityIcons name="close" size={26} color="#fff" />
               </TouchableOpacity>
@@ -127,20 +101,18 @@ export default function App() {
 
             {loading ? (
               <View style={styles.centerFetch}>
-                <ActivityIndicator size="large" color={currentType === 'connections' ? "#8a2be2" : "#d90429"} />
-                <Text style={styles.loadingText}>جاري جلب البيانات من السيرفر...</Text>
+                <ActivityIndicator size="large" color="#4361ee" />
+                <Text style={styles.loadingText}>جاري التحميل...</Text>
               </View>
             ) : fetchedData.length > 0 ? (
               <FlatList
                 data={fetchedData}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={renderItem}
-                contentContainerStyle={{ paddingBottom: 20 }}
               />
             ) : (
               <View style={styles.centerFetch}>
-                <MaterialCommunityIcons name="alert-circle-outline" size={48} color="#d90429" />
-                <Text style={styles.errorText}>لم يتم العثور على أي بيانات. تأكد من توفر مسار /api/{currentType} على Vercel.</Text>
+                <Text style={styles.errorText}>لا توجد بيانات متاحة حالياً لهذا القسم.</Text>
               </View>
             )}
           </View>
@@ -152,25 +124,24 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0b132b', alignItems: 'center', justifyBetween: 'space-between' },
-  header: { marginTop: 50, alignItems: 'center' },
-  logoText: { fontSize: 32, fontWeight: 'bold', color: '#ffffff', letterSpacing: 1 },
+  container: { flex: 1, backgroundColor: '#0b132b', paddingVertical: 20 },
+  header: { marginTop: 40, alignItems: 'center', paddingHorizontal: 20 },
+  logoText: { fontSize: 36, fontWeight: 'bold', color: '#ffffff', marginBottom: 10 },
   logoHighlight: { color: '#4361ee' },
-  gridContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%', paddingHorizontal: 20 },
-  row: { flexDirection: 'row', justifyContent: 'center', marginBottom: 16, width: '100%' },
-  singleRow: { flexDirection: 'row', justifyContent: 'center', width: '100%' },
-  card: { width: width * 0.28, height: width * 0.28, borderRadius: 18, justifyContent: 'center', alignItems: 'center', marginHorizontal: 10, elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5 },
-  
+  subTitle: { fontSize: 18, color: '#4361ee', fontWeight: '600', marginBottom: 5 },
+  descText: { fontSize: 13, color: '#a3b1c6', textAlign: 'center' },
+  gridContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 20 },
+  row: { flexDirection: 'row', justifyContent: 'center', marginBottom: 20 },
+  singleRow: { flexDirection: 'row', justifyContent: 'center' },
+  card: { width: width * 0.38, height: width * 0.35, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginHorizontal: 12, elevation: 5, padding: 10 },
+  cardText: { color: '#fff', fontSize: 14, fontWeight: 'bold', marginTop: 10, textAlign: 'center' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.75)', justifyContent: 'flex-end' },
   modalContent: { height: '70%', backgroundColor: '#1c2541', borderTopLeftRadius: 25, borderTopRightRadius: 25, padding: 20 },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, borderBottomWidth: 1, borderBottomColor: '#3a506b', paddingBottom: 10 },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff' },
-  centerFetch: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 40 },
-  loadingText: { color: '#fff', marginTop: 15, fontSize: 16 },
-  errorText: { color: '#a3b1c6', marginTop: 15, fontSize: 14, textAlign: 'center', paddingHorizontal: 20 },
-  
-  itemCard: { backgroundColor: '#3a506b', padding: 15, borderRadius: 12, marginBottom: 10, borderWidth: 1 },
-  itemHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
-  itemTitle: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginLeft: 8 },
-  itemDetails: { color: '#e0e1dd', fontSize: 13, fontFamily: 'monospace', lineHeight: 18 }
+  centerFetch: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  loadingText: { color: '#fff', marginTop: 10 },
+  errorText: { color: '#a3b1c6', textAlign: 'center' },
+  itemCard: { backgroundColor: '#3a506b', padding: 15, borderRadius: 12, marginBottom: 10 },
+  itemDetails: { color: '#fff', fontSize: 13, fontFamily: 'monospace' }
 });

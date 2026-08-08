@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "Rabah",
+    "slug": "myapp",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0b132b"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0b132b"
+      },
+      "package": "com.anonymous.reactvitetailwind"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
