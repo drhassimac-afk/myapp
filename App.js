@@ -1,40 +1,59 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, StatusBar, Dimensions, Modal, ActivityIndicator, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, StatusBar, Dimensions, Modal, ActivityIndicator, ScrollView, FlatList } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { fetchData } from './src/services/api'; // استيراد دالة الاتصال بـ Vercel
+import { fetchData } from './src/services/api'; 
 
 const { width } = Dimensions.get('window');
 
 export default function App() {
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [apiData, setApiData] = useState(null);
+  const [connectionsData, setConnectionsData] = useState([]);
 
   // دالة التعامل مع الضغط على الأزرار
   const handlePress = async (buttonName) => {
-    console.log(`تم الضغط على زر: ${buttonName}`);
-    
     if (buttonName === 'البنفسجي') {
       setLoading(true);
       setModalVisible(true);
       
-      // جلب البيانات من مسار الـ API (تأكد من وجود مسار باسم 'status' أو 'users' في سيرفر Vercel)
-      const result = await fetchData('status'); 
-      setApiData(result);
+      # 🟢 استدعاء المسار الفعلي المحدد من قبلك: connections
+      const result = await fetchData('connections'); 
+      
+      # التحقق من البيانات وتخزينها كصفوف مصفوفة
+      if (result && Array.isArray(result)) {
+        setConnectionsData(result);
+      } else if (result && result.data && Array.isArray(result.data)) {
+        setConnectionsData(result.data);
+      } else {
+        setConnectionsData(result ? [result] : []);
+      }
       setLoading(false);
     }
   };
+
+  // تصميم كل عنصر اتصال داخل القائمة
+  const renderConnectionItem = ({ item, index }) => (
+    <View style={styles.itemCard}>
+      <View style={styles.itemHeader}>
+        <MaterialCommunityIcons name="account-circle" size={24} color="#8a2be2" />
+        <Text style={styles.itemTitle}>{item.name || item.username || `اتصال #${index + 1}`}</Text>
+      </View>
+      <Text style={styles.itemDetails}>
+        {item.status ? `الحالة: ${item.status}` : ''} 
+        {item.ip ? `\nIP: ${item.ip}` : ''}
+        {typeof item === 'string' ? item : (!item.name && !item.status ? JSON.stringify(item) : '')}
+      </Text>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0b132b" />
       
-      {/* الشعار العلوي */}
       <View style={styles.header}>
         <Text style={styles.logoText}>Rabah<Text style={styles.logoHighlight}>Dj</Text></Text>
       </View>
 
-      {/* مصفوفة الأزرار الملونة */}
       <View style={styles.gridContainer}>
         <View style={styles.row}>
           <TouchableOpacity style={[styles.card, { backgroundColor: '#8a2be2' }]} onPress={() => handlePress('البنفسجي')}>
@@ -61,29 +80,38 @@ export default function App() {
         </View>
       </View>
 
-      {/* النافذة المنبثقة للزر البنفسجي (Modal) */}
+      {/* النافذة المنبثقة المطورة لعرض الاتصالات المجلوبة من Vercel */}
       <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>حالة الاتصال والشبكة</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <MaterialCommunityIcons name="pulse" size={24} color="#8a2be2" style={{ marginRight: 8 }} />
+                <Text style={styles.modalTitle}>قائمة الاتصالات الحية</Text>
+              </View>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <MaterialCommunityIcons name="close" size={24} color="#fff" />
+                <MaterialCommunityIcons name="close" size={26} color="#fff" />
               </TouchableOpacity>
             </View>
 
-            <ScrollView contentContainerStyle={styles.modalBody}>
-              {loading ? (
-                <View style={styles.centerFetch}>
-                  <ActivityIndicator size="large" color="#8a2be2" />
-                  <Text style={styles.loadingText}>جاري الاتصال بسيرفر Vercel...</Text>
-                </View>
-              ) : (
-                <Text style={styles.dataText}>
-                  {apiData ? JSON.stringify(apiData, null, 2) : "استجابة السيرفر فارغة أو المسار غير صحيح.\nتأكد من توفر مسار /api/status على Vercel."}
-                </Text>
-              )}
-            </ScrollView>
+            {loading ? (
+              <View style={styles.centerFetch}>
+                <ActivityIndicator size="large" color="#8a2be2" />
+                <Text style={styles.loadingText}>جاري الاتصال بـ rabah-alpha.vercel.app...</Text>
+              </View>
+            ) : connectionsData.length > 0 ? (
+              <FlatList
+                data={connectionsData}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={renderConnectionItem}
+                contentContainerStyle={{ paddingBottom: 20 }}
+              />
+            ) : (
+              <View style={styles.centerFetch}>
+                <MaterialCommunityIcons name="alert-circle-outline" size={48} color="#d90429" />
+                <Text style={styles.errorText}>لم يتم العثور على اتصالات حية، أو أن بنية السيرفر تختلف.</Text>
+              </View>
+            )}
           </View>
         </View>
       </Modal>
@@ -102,13 +130,17 @@ const styles = StyleSheet.create({
   singleRow: { flexDirection: 'row', justifyContent: 'center', width: '100%' },
   card: { width: width * 0.28, height: width * 0.28, borderRadius: 18, justifyContent: 'center', alignItems: 'center', marginHorizontal: 10, elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5 },
   
-  // تصميم النافذة المنبثقة
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
-  modalContent: { height: '60%', backgroundColor: '#1c2541', borderTopLeftRadius: 25, borderTopRightRadius: 25, padding: 20 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.75)', justifyContent: 'flex-end' },
+  modalContent: { height: '70%', backgroundColor: '#1c2541', borderTopLeftRadius: 25, borderTopRightRadius: 25, padding: 20 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, borderBottomWidth: 1, borderBottomColor: '#3a506b', paddingBottom: 10 },
   modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff' },
-  modalBody: { flexGrow: 1, paddingVertical: 10 },
   centerFetch: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 40 },
   loadingText: { color: '#fff', marginTop: 15, fontSize: 16 },
-  dataText: { color: '#2a9d8f', fontFamily: 'monospace', fontSize: 14, lineHeight: 20 },
+  errorText: { color: '#a3b1c6', marginTop: 15, fontSize: 14, textAlign: 'center', paddingHorizontal: 20 },
+  
+  // تصميم بطاقات الاتصالات الفردية
+  itemCard: { backgroundColor: '#3a506b', padding: 15, borderRadius: 12, marginBottom: 10, borderWidth: 1, borderColor: '#5c677d' },
+  itemHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
+  itemTitle: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginLeft: 8 },
+  itemDetails: { color: '#e0e1dd', fontSize: 13, fontFamily: 'monospace', lineHeight: 18 }
 });
