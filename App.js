@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, StatusBar, Dimensions, Modal, ActivityIndicator, ScrollView, FlatList } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, StatusBar, Dimensions, Modal, ActivityIndicator, FlatList } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { fetchData } from './src/services/api'; 
 
@@ -7,44 +7,64 @@ const { width } = Dimensions.get('window');
 
 export default function App() {
   const [modalVisible, setModalVisible] = useState(false);
+  const [currentType, setCurrentType] = useState(''); // 'connections' أو 'database'
   const [loading, setLoading] = useState(false);
-  const [connectionsData, setConnectionsData] = useState([]);
+  const [fetchedData, setFetchedData] = useState([]);
 
   // دالة التعامل مع الضغط على الأزرار
   const handlePress = async (buttonName) => {
-    if (buttonName === 'البنفسجي') {
+    if (buttonName === 'البنفسجي' || buttonName === 'الأحمر') {
       setLoading(true);
       setModalVisible(true);
       
-      # 🟢 استدعاء المسار الفعلي المحدد من قبلك: connections
-      const result = await fetchData('connections'); 
+      const endpoint = buttonName === 'البنفسجي' ? 'connections' : 'database';
+      setCurrentType(endpoint);
+
+      const result = await fetchData(endpoint); 
       
-      # التحقق من البيانات وتخزينها كصفوف مصفوفة
+      // التحقق من بنية البيانات وتحويلها إلى مصفوفة قابلة للعرض
       if (result && Array.isArray(result)) {
-        setConnectionsData(result);
+        setFetchedData(result);
       } else if (result && result.data && Array.isArray(result.data)) {
-        setConnectionsData(result.data);
+        setFetchedData(result.data);
       } else {
-        setConnectionsData(result ? [result] : []);
+        setFetchedData(result ? [result] : []);
       }
       setLoading(false);
     }
   };
 
-  // تصميم كل عنصر اتصال داخل القائمة
-  const renderConnectionItem = ({ item, index }) => (
-    <View style={styles.itemCard}>
-      <View style={styles.itemHeader}>
-        <MaterialCommunityIcons name="account-circle" size={24} color="#8a2be2" />
-        <Text style={styles.itemTitle}>{item.name || item.username || `اتصال #${index + 1}`}</Text>
-      </View>
-      <Text style={styles.itemDetails}>
-        {item.status ? `الحالة: ${item.status}` : ''} 
-        {item.ip ? `\nIP: ${item.ip}` : ''}
-        {typeof item === 'string' ? item : (!item.name && !item.status ? JSON.stringify(item) : '')}
-      </Text>
-    </View>
-  );
+  // تصميم العناصر للقائمة بناءً على نوع الزر المفتوح
+  const renderItem = ({ item, index }) => {
+    if (currentType === 'connections') {
+      return (
+        <View style={[styles.itemCard, { borderColor: '#8a2be2' }]}>
+          <View style={styles.itemHeader}>
+            <MaterialCommunityIcons name="account-circle" size={24} color="#8a2be2" />
+            <Text style={styles.itemTitle}>{item.name || item.username || `اتصال #${index + 1}`}</Text>
+          </View>
+          <Text style={styles.itemDetails}>
+            {item.status ? `الحالة: ${item.status}` : ''} 
+            {item.ip ? `\nIP: ${item.ip}` : ''}
+            {typeof item === 'string' ? item : (!item.name && !item.status ? JSON.stringify(item) : '')}
+          </Text>
+        </View>
+      );
+    } else {
+      // تصميم بطاقات قاعدة البيانات (الزر الأحمر)
+      return (
+        <View style={[styles.itemCard, { borderColor: '#d90429' }]}>
+          <View style={styles.itemHeader}>
+            <MaterialCommunityIcons name="database-marker" size={24} color="#d90429" />
+            <Text style={styles.itemTitle}>{item.title || item.id || `سجل #${index + 1}`}</Text>
+          </View>
+          <Text style={styles.itemDetails}>
+            {typeof item === 'object' ? JSON.stringify(item, null, 2) : item}
+          </Text>
+        </View>
+      );
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -80,14 +100,21 @@ export default function App() {
         </View>
       </View>
 
-      {/* النافذة المنبثقة المطورة لعرض الاتصالات المجلوبة من Vercel */}
+      {/* النافذة المنبثقة المشتركة للزرين */}
       <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <MaterialCommunityIcons name="pulse" size={24} color="#8a2be2" style={{ marginRight: 8 }} />
-                <Text style={styles.modalTitle}>قائمة الاتصالات الحية</Text>
+                <MaterialCommunityIcons 
+                  name={currentType === 'connections' ? "pulse" : "database"} 
+                  size={24} 
+                  color={currentType === 'connections' ? "#8a2be2" : "#d90429"} 
+                  style={{ marginRight: 8 }} 
+                />
+                <Text style={styles.modalTitle}>
+                  {currentType === 'connections' ? "قائمة الاتصالات الحية" : "سجلات قاعدة البيانات"}
+                </Text>
               </View>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <MaterialCommunityIcons name="close" size={26} color="#fff" />
@@ -96,20 +123,20 @@ export default function App() {
 
             {loading ? (
               <View style={styles.centerFetch}>
-                <ActivityIndicator size="large" color="#8a2be2" />
-                <Text style={styles.loadingText}>جاري الاتصال بـ rabah-alpha.vercel.app...</Text>
+                <ActivityIndicator size="large" color={currentType === 'connections' ? "#8a2be2" : "#d90429"} />
+                <Text style={styles.loadingText}>جاري جلب البيانات من السيرفر...</Text>
               </View>
-            ) : connectionsData.length > 0 ? (
+            ) : fetchedData.length > 0 ? (
               <FlatList
-                data={connectionsData}
+                data={fetchedData}
                 keyExtractor={(item, index) => index.toString()}
-                renderItem={renderConnectionItem}
+                renderItem={renderItem}
                 contentContainerStyle={{ paddingBottom: 20 }}
               />
             ) : (
               <View style={styles.centerFetch}>
                 <MaterialCommunityIcons name="alert-circle-outline" size={48} color="#d90429" />
-                <Text style={styles.errorText}>لم يتم العثور على اتصالات حية، أو أن بنية السيرفر تختلف.</Text>
+                <Text style={styles.errorText}>لم يتم العثور على أي بيانات، أو أن المسار غير مهيأ في الـ Backend.</Text>
               </View>
             )}
           </View>
@@ -138,8 +165,7 @@ const styles = StyleSheet.create({
   loadingText: { color: '#fff', marginTop: 15, fontSize: 16 },
   errorText: { color: '#a3b1c6', marginTop: 15, fontSize: 14, textAlign: 'center', paddingHorizontal: 20 },
   
-  // تصميم بطاقات الاتصالات الفردية
-  itemCard: { backgroundColor: '#3a506b', padding: 15, borderRadius: 12, marginBottom: 10, borderWidth: 1, borderColor: '#5c677d' },
+  itemCard: { backgroundColor: '#3a506b', padding: 15, borderRadius: 12, marginBottom: 10, borderWidth: 1 },
   itemHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
   itemTitle: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginLeft: 8 },
   itemDetails: { color: '#e0e1dd', fontSize: 13, fontFamily: 'monospace', lineHeight: 18 }
